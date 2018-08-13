@@ -39,9 +39,13 @@ void Button::Render() {
 }
 
 bool Button::Event(SDL_Event *event) {
+	bool success = false;
 	if (event->type == SDL_MOUSEBUTTONDOWN)
 	{
 		if (event->button.button == SDL_BUTTON_LEFT && event->button.x > x && event->button.x < x + width && event->button.y > y && event->button.y < y + height)
-			return true;
+			success = true;
+		else success = false;
 	}
+	else success = false;
+	return success;
 }

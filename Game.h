@@ -3,6 +3,7 @@
 #include "MainMenu.h"
 #include "Paddle.h"
 #include "Ball.h"
+#include "Board.h"
 
 const int FPS = 120;
 const double frameDelay = 1000.0 / FPS;
