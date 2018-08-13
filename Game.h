@@ -2,9 +2,16 @@
 #include "SDL.h"
 #include "MainMenu.h"
 #include "Paddle.h"
+#include "Ball.h"
 
-const int FPS = 60;
+const int FPS = 120;
 const double frameDelay = 1000.0 / FPS;
+
+enum state {
+	MAINMENU,
+	GAME,
+	PAUSE
+};
 
 class Game	{
 public:
@@ -16,12 +23,14 @@ public:
 	void Render();
 	void Update();
 	void Clean();
-	void newGame();
+	void NewGame();
+	void RicochetBoundary(int i);
 
 private:
 	SDL_Window * window;
 	SDL_Renderer * renderer;
 	MainMenu * mm;
-	Uint8 state;
+	state state;
 	Paddle * paddle;
+	std::vector<Ball*> ball;
 };

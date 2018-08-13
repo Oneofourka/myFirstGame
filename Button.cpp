@@ -1,5 +1,4 @@
 #include "Button.h"
-#include <sstream>
 
 Button::Button(SDL_Renderer * renderer, std::string text, double x, double y) : Texture(renderer, x, y) {
 	SDL_Surface* surface = IMG_Load("images/button.png");
@@ -13,15 +12,15 @@ Button::Button(SDL_Renderer * renderer, std::string text, double x, double y) : 
 
 	TTF_Font * font = TTF_OpenFont("ttf.ttf", 24);
 	SDL_Color color = { 0, 0, 0 };
-	std::stringstream s;
-	s << text;
-	surface = TTF_RenderText_Solid(font, s.str().c_str(), color);
+	surface = TTF_RenderText_Solid(font, text.c_str(), color);
 	message = SDL_CreateTextureFromSurface(renderer, surface);
 	SDL_FreeSurface(surface);
+//	std::cout << "button constructor" << this << std::endl;
 }
 
 Button::~Button() {
 	SDL_DestroyTexture(buttonTexture);
+//	std::cout << "button destructor" << this << std::endl;
 }
 
 void Button::Render() {

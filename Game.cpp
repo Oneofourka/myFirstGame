@@ -1,13 +1,15 @@
 #include "Game.h"
 
 Game::Game() {
-	window = NULL;
-	renderer = NULL;
-	state = 0;	//mainMenu
+	window = nullptr;
+	renderer = nullptr;
+	state = MAINMENU;
+//	std::cout << "game constructor" << this << std::endl;
 }
 
 Game::~Game() {
 	Clean();
+//	std::cout << "game destructor" << this << std::endl;
 }
 
 bool Game::Init() {
@@ -41,7 +43,7 @@ bool Game::Init() {
 }
 
 void Game::Running() {
-	newGame();
+	NewGame();
 
 	Uint32 frameStart;
 	int frameTime;
@@ -61,12 +63,14 @@ void Game::Running() {
 		}
 		paddle->Move();
 		Update();
-
+		for (size_t i = 0; i < ball.size(); i++) {
+			RicochetBoundary(i);
+		}
 		frameTime = SDL_GetTicks() - frameStart;
 
 		if (frameDelay > frameTime)
 		{
-			SDL_Delay(frameDelay - frameTime);
+			SDL_Delay(Uint32(frameDelay - frameTime));
 		}
 	}
 	SDL_Quit();
@@ -76,20 +80,58 @@ void Game::Render() {
 	SDL_RenderClear(renderer);
 	mm->Render();
 	paddle->Render();
+	for (size_t i = 0; i < ball.size(); i++) {
+		ball[i]->Render();
+	}
 	SDL_RenderPresent(renderer);
 }
 
 void Game::Update() {
-
+	for (size_t i = 0; i < ball.size(); i++) {
+		ball[i]->Update();
+	}
 }
 
 void Game::Clean() {
 	mm->Clean();
+	delete mm;
+	delete paddle;
+	for (size_t i = 0; i < ball.size(); i++) {
+		delete ball[i];
+	}
 	SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(window);
 }
 
-void Game::newGame() {
+void Game::NewGame() {
 	mm = new MainMenu(renderer);
 	paddle = new Paddle(renderer, DISPLAY_WIDTH / 2.0 - PADDLE_WIDTH / 2.0, DISPLAY_HEIGHT - PADDLE_HEIGHT);
+	ball.push_back(new Ball(renderer, DISPLAY_WIDTH / 2.0 - BALL_WIDTH / 2.0, DISPLAY_HEIGHT - PADDLE_HEIGHT - BALL_HEIGHT));
+}
+
+void Game::RicochetBoundary(int i) {
+	if (ball[i]->getX() <= 0)			//left boundary
+	{
+		ball[i]->setX(1);
+		ball[i]->setDirX(ball[i]->getDirX() * -1.0);
+	//	ball[i]->setContact(0);
+	}
+	if (ball[i]->getX() + BALL_WIDTH >= DISPLAY_WIDTH)		//right boundary
+	{
+		ball[i]->setX(DISPLAY_WIDTH - 1.0 - ball[i]->getWidth());
+		ball[i]->setDirX(ball[i]->getDirX() * -1.0);
+	//	ball[i]->setContact(0);
+	}
+	if (ball[i]->getY() > DISPLAY_HEIGHT - ball[i]->getHeight())				//down
+	{
+	ball[i]->setY(DISPLAY_HEIGHT - ball[i]->getHeight() - 1.0);
+	ball[i]->setDirY(ball[i]->getDirY() * -1.0);
+	//ball[i]->setContact(0);
+	}
+	if (ball[i]->getY() < 0)				//up
+	{
+		ball[i]->setY(1);
+		ball[i]->setDirY(ball[i]->getDirY() * -1.0);
+//		ball[i]->setContact(0);
+	}
 }

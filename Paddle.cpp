@@ -10,11 +10,12 @@ Paddle::Paddle(SDL_Renderer * renderer, double x, double y) : Texture(renderer, 
 	this->y = y;
 	this->height = PADDLE_HEIGHT;
 	this->width = PADDLE_WIDTH;
-	std::cout << "x = " << this->x << "\txEnd = " << xEnd << std::endl;
+//	std::cout << "paddle constructor" << this << std::endl;
 }
 
 Paddle::~Paddle() {
 	SDL_DestroyTexture(paddleTexture);
+//	std::cout << "paddle destructor" << this << std::endl;
 }
 
 void Paddle::Render() {
@@ -38,8 +39,8 @@ void Paddle::Move() {
 	}
 	else if (keyboardState[SDL_SCANCODE_RIGHT])
 	{
-		if (xEnd >= 1000)
-			x = 1000 - PADDLE_WIDTH;
+		if (xEnd >= DISPLAY_WIDTH)
+			x = DISPLAY_WIDTH - PADDLE_WIDTH;
 		else x += 5;
 	}
 }
