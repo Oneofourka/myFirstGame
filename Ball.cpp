@@ -5,11 +5,8 @@ Ball::Ball(SDL_Renderer * renderer, double x, double y) : Texture(renderer, x, y
 	ballTexture = SDL_CreateTextureFromSurface(renderer, surface);
 	SDL_FreeSurface(surface);
 
-	this->renderer = renderer;
-	this->x = x;
-	this->y = y;
-	this->height = BALL_HEIGHT;
-	this->width = BALL_WIDTH;
+	width = BALL_WIDTH;
+	height = BALL_HEIGHT;
 	dirX = 1;
 	dirY = -1;
 //	std::cout << "ball constructor" << this << std::endl;
@@ -20,20 +17,21 @@ Ball::~Ball() {
 //	std::cout << "ball destructor" << this << std::endl;
 }
 
-void Ball::Update() {
-	x += dirX;
-	y += dirY;
-}
-
 void Ball::Render() {
 	SDL_Rect dstRect;
 
 	dstRect.x = int(x);
 	dstRect.y = int(y);
-	dstRect.w = int(BALL_WIDTH);
-	dstRect.h = int(BALL_HEIGHT);
+	dstRect.w = int(width);
+	dstRect.h = int(height);
 
 	SDL_RenderCopy(renderer, ballTexture, 0, &dstRect);
+}
+
+void Ball::Update() {
+	getSomeCoord(width, height);
+	x += dirX;
+	y += dirY;
 }
 
 void Ball::setDirX(double dirX) {
@@ -50,4 +48,10 @@ double Ball::getDirX() {
 
 double Ball::getDirY() {
 	return dirY;
+}
+
+void Ball::setDirection(double dirX, double dirY) {
+	double length = sqrt(dirX * dirX + dirY * dirY);
+	this->dirX = BALL_SPEED * (dirX / length);
+	this->dirY = BALL_SPEED * (dirY / length);
 }

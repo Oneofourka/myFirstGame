@@ -1,12 +1,16 @@
 #pragma once
 #include "Brick.h"
 
-class Board : public Texture{
+class Board{
 public:
 	Board(SDL_Renderer * renderer);
 	~Board();
+	void Render();
 	void CreateLvl();
+	void Clean();
+	Brick *getBrick(int i, int j);
 
 private:
-	Brick bricks[NUMBER_WIDTH][NUMBER_HEIGHT];
+	SDL_Renderer * renderer;
+	Brick *bricks[NUMBER_WIDTH][NUMBER_HEIGHT];
 };

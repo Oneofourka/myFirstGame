@@ -5,10 +5,9 @@ Button::Button(SDL_Renderer * renderer, std::string text, double x, double y) : 
 	buttonTexture = SDL_CreateTextureFromSurface(renderer, surface);
 	SDL_FreeSurface(surface);
 	
-	this->renderer = renderer;
 	this->text = text;
-	this->x = x;
-	this->y = y;
+	this->width = BUTTON_WIDTH;
+	this->height = BUTTON_HEIGHT;
 
 	TTF_Font * font = TTF_OpenFont("ttf.ttf", 24);
 	SDL_Color color = { 0, 0, 0 };
@@ -28,13 +27,13 @@ void Button::Render() {
 
 	dstRect.x = int(x);
 	dstRect.y = int(y);
-	dstRect.w = int(BUTTON_WIDHT);
-	dstRect.h = int(BUTTON_HEIGHT);
+	dstRect.w = int(width);
+	dstRect.h = int(height);
 
 	SDL_RenderCopy(renderer, buttonTexture, 0, &dstRect);
 	
-	dstRect.x = int((BUTTON_WIDHT - text.size() * BUTTON_WIDHT / 10) / 2.0 + x);
-	dstRect.w = int(text.size() * BUTTON_WIDHT / 10);
+	dstRect.x = int((width - text.size() * width / 10) / 2.0 + x);
+	dstRect.w = int(text.size() * width / 10);
 	SDL_RenderCopy(renderer, message, 0, &dstRect);
 }
 

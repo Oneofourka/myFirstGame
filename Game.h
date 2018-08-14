@@ -26,6 +26,8 @@ public:
 	void Clean();
 	void NewGame();
 	void RicochetBoundary(int i);
+	void RicochetPaddle(int i);
+	void RicochetBrick(int i);
 
 private:
 	SDL_Window * window;
@@ -34,4 +36,5 @@ private:
 	state state;
 	Paddle * paddle;
 	std::vector<Ball*> ball;
+	Board * board;
 };

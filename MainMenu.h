@@ -8,7 +8,8 @@ public:
 	~MainMenu();
 	void Render();
 	void Clean();
-
+	size_t Size();
+	Button * getButton(size_t i);
 private:
 	SDL_Renderer * renderer;
 	std::vector<Button*> mm;
