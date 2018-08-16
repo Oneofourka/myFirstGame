@@ -43,15 +43,15 @@ bool Game::Init() {
 }
 
 void Game::Running() {
-	NewGame();
+	mm = new MainMenu(renderer);
+	em = new EscMenu(renderer);
 
 	Uint32 frameStart;
 	int frameTime;
 
-	while (1)
+	while (state != QUIT)
 	{
 		frameStart = SDL_GetTicks();
-//		std::cout << state << std::endl;
 		Render();
 		SDL_Event event;
 		if (SDL_PollEvent(&event))
@@ -63,17 +63,75 @@ void Game::Running() {
 			if (state == MAINMENU) {
 				for (size_t i = 0; i < mm->Size(); i++)
 				{
-//					std::cout << state << std::endl;
 					if (mm->getButton(i)->Event(&event))
-						state = GAME;
+					{
+						if (i == 0)
+						{
+							NewGame();
+							state = PAUSE;
+						}
+						if (i == 1)
+							state = HIGH_SCORE;
+						if (i == 2)
+							state = QUIT;
+					}
+				}
+			}
+			if (state == ESC_MENU) {
+				for (size_t i = 0; i < mm->Size(); i++)
+				{
+					if (em->getButton(i)->Event(&event))
+					{
+						if (i == 0)
+						{
+							delete paddle;
+							for (size_t i = 0; i < ball.size(); i++)
+								delete ball[i];
+							board->Clean();
+							delete board;
+							NewGame();
+							state = PAUSE;
+						}
+						if (i == 1)
+						{
+							for (size_t i = 0; i < ball.size(); i++)
+								delete ball[i];
+							board->Clean();
+
+							state = MAINMENU;
+						}
+						if (i == 2)
+							state = QUIT;
+					}
+
+				}
+			}
+			if (event.type == SDL_KEYDOWN)
+			{
+				if (event.key.keysym.sym == SDLK_SPACE)
+				{
+					if (state == IN_GAME)
+						state = PAUSE;
+					else if (state == PAUSE)
+						state = IN_GAME;
+				}
+				else if ((event.key.keysym.sym == SDLK_LEFT || event.key.keysym.sym == SDLK_RIGHT) && state == PAUSE)
+					state = IN_GAME;
+				else if (event.key.keysym.sym == SDLK_ESCAPE) 
+				{
+					if (state == IN_GAME || state == PAUSE)
+						state = ESC_MENU;
+					else if (state == ESC_MENU)
+						state = PAUSE;
 				}
 			}
 		}
-		paddle->Move();
-		Update();
+		if (state == IN_GAME) 
+			Update();
 		for (size_t i = 0; i < ball.size(); i++) {
 			RicochetBoundary(i);
 			RicochetPaddle(i);
+			RicochetBrick(i);
 		}
 		frameTime = SDL_GetTicks() - frameStart;
 
@@ -87,13 +145,18 @@ void Game::Running() {
 
 void Game::Render() {
 	SDL_RenderClear(renderer);
-	mm->Render();
-	paddle->Render();
-	for (size_t i = 0; i < ball.size(); i++) {
-		ball[i]->Render();
+	if (state == MAINMENU)
+		mm->Render();
+	else if (state == IN_GAME || state == PAUSE)
+	{
+		paddle->Render();
+		for (size_t i = 0; i < ball.size(); i++) {
+			ball[i]->Render();
+			board->Render();
+		}
 	}
-	if (state == GAME)
-		board->Render();
+	else if (state == ESC_MENU)
+		em->Render();
 	SDL_RenderPresent(renderer);
 }
 
@@ -107,6 +170,8 @@ void Game::Update() {
 void Game::Clean() {
 	mm->Clean();
 	delete mm;
+	em->Clean();
+	delete em;
 	delete paddle;
 	for (size_t i = 0; i < ball.size(); i++)
 		delete ball[i];
@@ -117,10 +182,10 @@ void Game::Clean() {
 }
 
 void Game::NewGame() {
-	mm = new MainMenu(renderer);
 	paddle = new Paddle(renderer, DISPLAY_WIDTH / 2.0 - PADDLE_WIDTH / 2.0, DISPLAY_HEIGHT - PADDLE_HEIGHT);
-	ball.push_back(new Ball(renderer, DISPLAY_WIDTH / 2.0 - BALL_WIDTH / 2.0, DISPLAY_HEIGHT - PADDLE_HEIGHT - BALL_HEIGHT));
 	board = new Board(renderer);
+	ball.push_back(new Ball(renderer, paddle->getXMiddle() - BALL_WIDTH / 2.0, paddle->getY() - BALL_HEIGHT));
+	life = 3;
 }
 
 void Game::RicochetBoundary(int i) {
@@ -128,25 +193,32 @@ void Game::RicochetBoundary(int i) {
 	{
 		ball[i]->setX(1);
 		ball[i]->setDirX(ball[i]->getDirX() * -1.0);
-	//	ball[i]->setContact(0);
+		paddle->setState(NOT_ANGLE);
 	}
 	if (ball[i]->getXEnd() >= DISPLAY_WIDTH)		//right boundary
 	{
 		ball[i]->setX(DISPLAY_WIDTH - ball[i]->getWidth() - 1.0);
 		ball[i]->setDirX(ball[i]->getDirX() * -1.0);
-	//	ball[i]->setContact(0);
+		paddle->setState(NOT_ANGLE);
 	}
-	if (ball[i]->getYEnd() >= DISPLAY_HEIGHT)				//down
+/*	if (ball[i]->getYEnd() >= DISPLAY_HEIGHT)				//down
 	{
 		ball[i]->setY(DISPLAY_HEIGHT - ball[i]->getHeight() - 1.0);
 		ball[i]->setDirY(ball[i]->getDirY() * -1.0);
-		//ball[i]->setContact(0);
-	}
-	if (ball[i]->getY() <= 400)				//up
+		paddle->setState(NOT_ANGLE);
+	}*/
+	if (ball[i]->getY() <= 0)				//up
 	{
-		ball[i]->setY(401);
+		ball[i]->setY(1);
 		ball[i]->setDirY(ball[i]->getDirY() * -1.0);
-//		ball[i]->setContact(0);
+		paddle->setState(NOT_ANGLE);
+	}
+	if (ball[i]->getYEnd() >= DISPLAY_HEIGHT) 
+	{
+		life--;
+		ball[i]->setY(paddle->getY() - ball[i]->getHeight());
+		ball[i]->setX(paddle->getXMiddle() - ball[i]->getWidth() / 2.0);
+		ball[i]->setDirection(1, -1);
 	}
 }
 
@@ -155,13 +227,13 @@ void Game::RicochetPaddle(int i) {
 	{
 		if (ball[i]->getXEnd() > paddle->getX() && ball[i]->getXMiddle() < paddle->getXMiddle()) 
 		{
-			std::cout << "left boundary of paddle" << std::endl;
+		//	std::cout << "left boundary of paddle" << std::endl;
 			ball[i]->setX(paddle->getX() - ball[i]->getWidth() - 2.0);
 			ball[i]->setDirX(ball[i]->getDirX() * -1.0);
 		}
 		else if (ball[i]->getX() < paddle->getXEnd() && ball[i]->getXMiddle() > paddle->getXMiddle()) 
 		{
-			std::cout << "right boundary of paddle" << std::endl;
+		//	std::cout << "right boundary of paddle" << std::endl;
 			ball[i]->setX(paddle->getXEnd() + 2.0);
 			ball[i]->setDirX(ball[i]->getDirX() * -1.0);
 		}
@@ -171,42 +243,39 @@ void Game::RicochetPaddle(int i) {
 		if (ball[i]->getXEnd() > paddle->getX() && ball[i]->getX() < paddle->getXEnd()) 	
 		{
 			double rad = ball[i]->getWidth() / 2.0;		//radius of ball[i]
-			if (ball[i]->getXMiddle() == paddle->getXMiddle())
+			if (ball[i]->getXMiddle() == paddle->getXMiddle() && paddle->getState() != RIGHT_ANGLE && paddle->getState() != LEFT_ANGLE)
 			{	
-				std::cout << "middle of paddle" << std::endl;
+		//		std::cout << "middle of paddle" << std::endl;
 				ball[i]->setY(paddle->getY() - 2);
 				ball[i]->setDirection(0, -1);
-			//	ball[i]->setContact(0);
 			}
 			else if (ball[i]->getXMiddle() < paddle->getX() && paddle->getX() - ball[i]->getXMiddle() <= sqrt(pow(rad, 2) - pow((paddle->getY() - ball[i]->getYMiddle()), 2)))
 			{
-				std::cout << "left angle" << std::endl;
+		//		std::cout << "left angle" << std::endl;
 				ball[i]->setY(paddle->getY() - (paddle->getY() - ball[i]->getYMiddle()) - rad - 2.0);
 				ball[i]->setX(paddle->getX() - (paddle->getX() - ball[i]->getXMiddle()) - rad - 2.0);
 				ball[i]->setDirection(-2.0 * ((paddle->getWidth() / 2.0 - 1.0) / (paddle->getWidth() / 2.0)), -1);
-			//	ball[i]->setContact(0);
+				paddle->setState(LEFT_ANGLE);
 			}
 			else if (ball[i]->getXMiddle() > paddle->getXEnd() && ball[i]->getXMiddle() - paddle->getXEnd() <= sqrt(pow(rad, 2) - pow(paddle->getY() - ball[i]->getYMiddle(), 2)))
 			{	
-				std::cout << "right angle" << std::endl;
+		//		std::cout << "right angle" << std::endl;
 				ball[i]->setY(paddle->getY() - (paddle->getY() - ball[i]->getYMiddle()) - rad - 2.0);
 				ball[i]->setX(paddle->getXEnd() + (ball[i]->getXMiddle() - paddle->getXEnd()) - rad + 2);
 				ball[i]->setDirection(2.0 * ((paddle->getWidth() / 2.0 - 1.0) / (paddle->getWidth() / 2.0)), -1);
-			//	ball[i]->setContact(0);
+				paddle->setState(RIGHT_ANGLE);
 			}
-			else if (ball[i]->getXMiddle() > paddle->getX() && ball[i]->getXMiddle() < paddle->getXMiddle())
+			else if (ball[i]->getXMiddle() > paddle->getX() && ball[i]->getXMiddle() < paddle->getXMiddle() && paddle->getState() != RIGHT_ANGLE && paddle->getState() != LEFT_ANGLE)
 			{	
-				std::cout << "left but not angle" << std::endl;
+		//		std::cout << "left but not angle" << std::endl;
 				ball[i]->setY(paddle->getY() - ball[i]->getHeight() - 2);
 				ball[i]->setDirection(-2.0 * ((paddle->getXMiddle() - ball[i]->getXMiddle()) / (paddle->getWidth() / 2.0)), -1);
-			//	ball[i]->setContact(0);
 			}
-			else if (ball[i]->getXMiddle() < paddle->getXEnd() && ball[i]->getXMiddle() > paddle->getXMiddle())
+			else if (ball[i]->getXMiddle() < paddle->getXEnd() && ball[i]->getXMiddle() > paddle->getXMiddle() && paddle->getState() != RIGHT_ANGLE && paddle->getState() != LEFT_ANGLE)
 			{	
-				std::cout << "right but not angle" << std::endl;
+		//		std::cout << "right but not angle" << std::endl;
 				ball[i]->setY(paddle->getY() - ball[i]->getHeight() - 2);
 				ball[i]->setDirection(2.0 * ((ball[i]->getXMiddle() - paddle->getXMiddle()) / (paddle->getWidth() / 2.0)), -1);
-			//	ball[i]->setContact(0);
 			}
 		}	
 	}
@@ -218,145 +287,134 @@ void Game::RicochetBrick(int i) {
 		for (int k = 0; k < NUMBER_HEIGHT; k++)
 		{
 			double rad = ball[i]->getWidth() / 2.0;
-			if (board->getBrick(t, k)->getState())	//if brick is exist
+			double lBrick = board->getBrick(t, k)->getX(); //left wall of brick
+			double uBrick = board->getBrick(t, k)->getY(); //up wall of brick
+			double rBrick = board->getBrick(t, k)->getXEnd();  //right wall of brick
+			double dBrick = board->getBrick(t, k)->getYEnd(); //down wall of brick
+			if (board->getBrick(t, k)->getState())		//if exist
 			{
-				if (lBrick <= ball[i]->getXPos() + ball[i]->getWidth() && rBrick >= ball[i]->getXPos() && dBrick >= ball[i]->getYPos() && uBrick <= ball[i]->getYPos() + ball[i]->getHeight())	//check of collision of a ball and a brick
-				{	//touching ball and brick
-					if (ball[i]->getYPos() <= dBrick && ball[i]->getXMiddle() >= lBrick && ball[i]->getXMiddle() <= rBrick && ball[i]->getYMiddle() > dBrick)
-					{		//down
-						cout << "down" << endl;
-						ball[i]->setYPos(dBrick + 2.0);
-						ball[i]->setDirY(-1.0 * ball[i]->getDirY());
-						if (ball[i]->getContact() != 3)
-						{
-							board->destroyBrick(t, k);
-							ball[i]->setContact(3);
-						}
-					}
-					else if (ball[i]->getXPos() + ball[i]->getWidth() >= lBrick && ball[i]->getYMiddle() >= uBrick && ball[i]->getYMiddle() <= dBrick && ball[i]->getXMiddle() < lBrick)
-					{		//letf
-						cout << "left" << endl;
-						ball[i]->setXPos(lBrick - ball[i]->getWidth() - 2.0);
+				if (ball[i]->getXMiddle() >= lBrick && ball[i]->getXMiddle() <= rBrick && ball[i]->getYMiddle() > dBrick && ball[i]->getY() <= dBrick)
+				{
+				//	std::cout << "down" << std::endl;
+					ball[i]->setY(dBrick + 2.0);
+					ball[i]->setDirY(-1.0 * ball[i]->getDirY());
+					board->DestroyBrick(t, k);
+					paddle->setState(NOT_ANGLE);
+				}
+				else if (ball[i]->getXMiddle() >= lBrick && ball[i]->getXMiddle() <= rBrick && ball[i]->getYMiddle() < uBrick && ball[i]->getYEnd() >= uBrick)
+				{
+				//	std::cout << "up" << std::endl;
+					ball[i]->setY(uBrick - ball[i]->getHeight() - 2.0);
+					ball[i]->setDirY(-1.0 * ball[i]->getDirY());
+					board->DestroyBrick(t, k);
+					paddle->setState(NOT_ANGLE);
+				}
+				else if (ball[i]->getYMiddle() >= uBrick && ball[i]->getYMiddle() <= dBrick && ball[i]->getXMiddle() < lBrick && ball[i]->getXEnd() >= lBrick)
+				{
+				//	std::cout << "left" << std::endl;
+					ball[i]->setX(lBrick - ball[i]->getWidth() - 2.0);
+					ball[i]->setDirX(-1.0 * ball[i]->getDirX());
+					board->DestroyBrick(t, k);
+					paddle->setState(NOT_ANGLE);
+				}
+				else if (ball[i]->getYMiddle() >= uBrick && ball[i]->getYMiddle() <= dBrick && ball[i]->getXMiddle() > rBrick && ball[i]->getX() <= rBrick)
+				{
+				//	std::cout << "right" << std::endl;
+					ball[i]->setX(rBrick + 2.0);
+					ball[i]->setDirX(-1.0 * ball[i]->getDirX());
+					board->DestroyBrick(t, k);
+					paddle->setState(NOT_ANGLE);
+				}
+				else if (ball[i]->getXMiddle() < lBrick && ball[i]->getYMiddle() < uBrick && lBrick - ball[i]->getXMiddle() <= sqrt(pow(rad, 2) - pow(uBrick - ball[i]->getYMiddle(), 2)))
+				{
+					board->DestroyBrick(t, k);
+				//	std::cout << "lu" << std::endl;
+					paddle->setState(NOT_ANGLE);
+					if (ball[i]->getDirX() >= 0 && ball[i]->getDirY() >= 0)
+					{
+						ball[i]->setX(lBrick - (lBrick - ball[i]->getXMiddle()) - rad - 2.0);
+						ball[i]->setY(uBrick - (uBrick - ball[i]->getYMiddle()) - rad - 2.0);
 						ball[i]->setDirX(-1.0 * ball[i]->getDirX());
-						if (ball[i]->getContact() != 4)
-						{
-							board->destroyBrick(t, k);
-							ball[i]->setContact(4);
-						}
-					}
-					else if (ball[i]->getXPos() <= rBrick && ball[i]->getYMiddle() >= uBrick && ball[i]->getYMiddle() <= dBrick && ball[i]->getXMiddle() > rBrick)
-					{	//right
-						cout << "right" << endl;
-						ball[i]->setXPos(rBrick + 2.0);
-						ball[i]->setDirX(-1.0 * ball[i]->getDirX());
-						if (ball[i]->getContact() != 5)
-						{
-							board->destroyBrick(t, k);
-							ball[i]->setContact(5);
-						}
-					}
-					else if (ball[i]->getYPos() + ball[i]->getHeight() >= uBrick && ball[i]->getXMiddle() >= lBrick && ball[i]->getXMiddle() <= rBrick && ball[i]->getYMiddle() < uBrick)
-					{	//up
-						cout << "up" << endl;
-						ball[i]->setYPos(uBrick - ball[i]->getHeight() - 2.0);
 						ball[i]->setDirY(-1.0 * ball[i]->getDirY());
-						if (ball[i]->getContact() != 6)
-						{
-							board->destroyBrick(t, k);
-							ball[i]->setContact(6);
-						}
 					}
-					else if (ball[i]->getXMiddle() < lBrick && ball[i]->getYMiddle() > dBrick && lBrick - ball[i]->getXMiddle() <= sqrt(pow(rad, 2) - pow(ball[i]->getYMiddle() - dBrick, 2)))
-					{	//ld
-						board->destroyBrick(t, k);
-						cout << "ld" << endl;
-						ball[i]->setContact(0);
-						if (ball[i]->getDirX() > 0 && ball[i]->getDirY() < 0)
-						{
-							ball[i]->setXPos(lBrick - (lBrick - ball[i]->getXMiddle()) - ball[i]->getWidth() / 2.0 - 2.0);
-							ball[i]->setYPos(dBrick + (ball[i]->getYMiddle() - dBrick) - ball[i]->getHeight() / 2.0 + 2.0);
-							ball[i]->setDirX(-1.0 * ball[i]->getDirX());
-							ball[i]->setDirY(-1.0 * ball[i]->getDirY());
-						}
-						else if (ball[i]->getDirX() > 0 && ball[i]->getDirY() > 0)
-						{
-							ball[i]->setXPos(lBrick - (lBrick - ball[i]->getXMiddle()) - ball[i]->getWidth() / 2.0 - 2.0);
-							ball[i]->setDirX(-1.0 * ball[i]->getDirX());
-						}
-						else
-						{
-							ball[i]->setYPos(dBrick + (ball[i]->getYMiddle() - dBrick) - ball[i]->getHeight() / 2.0 + 2.0);
-							ball[i]->setDirY(-1.0 * ball[i]->getDirY());
-						}
+					else if (ball[i]->getDirX() > 0 && ball[i]->getDirY() < 0)
+					{
+						ball[i]->setX(lBrick - (lBrick - ball[i]->getXMiddle()) - rad - 2.0);
+						ball[i]->setDirX(-1.0 * ball[i]->getDirX());
 					}
-					else if (ball[i]->getXMiddle() > rBrick && ball[i]->getYMiddle() > dBrick && ball[i]->getXMiddle() - rBrick <= sqrt(pow(rad, 2) - pow(ball[i]->getYMiddle() - dBrick, 2)))
-					{	//rd
-						ball[i]->setContact(0);
-						board->destroyBrick(t, k);
-						cout << "rd" << endl;
-						if (ball[i]->getDirX() < 0 && ball[i]->getDirY() < 0)
-						{
-							ball[i]->setXPos(rBrick + (ball[i]->getXMiddle() - rBrick) - ball[i]->getWidth() / 2.0 + 2.0);
-							ball[i]->setYPos(dBrick + (ball[i]->getYMiddle() - dBrick) - ball[i]->getHeight() / 2.0 + 2.0);
-							ball[i]->setDirX(-1.0 * ball[i]->getDirX());
-							ball[i]->setDirY(-1.0 * ball[i]->getDirY());
-						}
-						else if (ball[i]->getDirX() < 0 && ball[i]->getDirY() > 0)
-						{
-							ball[i]->setXPos(rBrick + (ball[i]->getXMiddle() - rBrick) - ball[i]->getWidth() / 2.0 + 2.0);
-							ball[i]->setDirX(-1.0 * ball[i]->getDirX());
-						}
-						else
-						{
-							ball[i]->setYPos(dBrick + (ball[i]->getYMiddle() - dBrick) - ball[i]->getHeight() / 2.0 + 2.0);
-							ball[i]->setDirY(-1.0 * ball[i]->getDirY());
-						}
+					else
+					{
+						ball[i]->setY(uBrick - (uBrick - ball[i]->getYMiddle()) - rad - 2.0);
+						ball[i]->setDirY(-1.0 * ball[i]->getDirY());
 					}
-					else if (ball[i]->getXMiddle() < lBrick && ball[i]->getYMiddle() < uBrick && lBrick - ball[i]->getXMiddle() <= sqrt(pow(rad, 2) - pow(uBrick - ball[i]->getYMiddle(), 2)))
-					{	//lu
-						ball[i]->setContact(0);
-						board->destroyBrick(t, k);
-						cout << "lu" << endl;
-						if (ball[i]->getDirX() > 0 && ball[i]->getDirY() > 0)
-						{
-							ball[i]->setXPos(lBrick - (lBrick - ball[i]->getXMiddle()) - ball[i]->getWidth() / 2.0 - 2.0);
-							ball[i]->setYPos(uBrick - (uBrick - ball[i]->getYMiddle()) - ball[i]->getHeight() / 2.0 - 2.0);
-							ball[i]->setDirX(-1.0 * ball[i]->getDirX());
-							ball[i]->setDirY(-1.0 * ball[i]->getDirY());
-						}
-						else if (ball[i]->getDirX() > 0 && ball[i]->getDirY() < 0)
-						{
-							ball[i]->setXPos(lBrick - (lBrick - ball[i]->getXMiddle()) - ball[i]->getWidth() / 2.0 - 2.0);
-							ball[i]->setDirX(-1.0 * ball[i]->getDirX());
-						}
-						else
-						{
-							ball[i]->setYPos(uBrick - (uBrick - ball[i]->getYMiddle()) - ball[i]->getHeight() / 2.0 - 2.0);
-							ball[i]->setDirY(-1.0 * ball[i]->getDirY());
-						}
+				}
+				else if (ball[i]->getXMiddle() > rBrick && ball[i]->getYMiddle() < uBrick && ball[i]->getXMiddle() - rBrick <= sqrt(pow(rad, 2) - pow(uBrick - ball[i]->getYMiddle(), 2)))
+				{
+					board->DestroyBrick(t, k);
+				//	std::cout << "ru" << std::endl;
+					paddle->setState(NOT_ANGLE);
+					if (ball[i]->getDirX() < 0 && ball[i]->getDirY() > 0)
+					{
+						ball[i]->setX(rBrick + (ball[i]->getXMiddle() - rBrick) - rad + 2.0);
+						ball[i]->setY(uBrick - (uBrick - ball[i]->getYMiddle()) - rad - 2.0);
+						ball[i]->setDirX(-1.0 * ball[i]->getDirX());
+						ball[i]->setDirY(-1.0 * ball[i]->getDirY());
 					}
-					else if (ball[i]->getXMiddle() > rBrick && ball[i]->getYMiddle() < uBrick && ball[i]->getXMiddle() - rBrick <= sqrt(pow(rad, 2) - pow(uBrick - ball[i]->getYMiddle(), 2)))
-					{	//ru
-						ball[i]->setContact(0);
-						board->destroyBrick(t, k);
-						cout << "ru" << endl;
-						if (ball[i]->getDirX() < 0 && ball[i]->getDirY() > 0)
-						{
-							ball[i]->setXPos(rBrick + (ball[i]->getXMiddle() - rBrick) - ball[i]->getWidth() / 2.0 + 2.0);
-							ball[i]->setYPos(uBrick - (uBrick - ball[i]->getYMiddle()) - ball[i]->getHeight() / 2.0 - 2.0);
-							ball[i]->setDirX(-1.0 * ball[i]->getDirX());
-							ball[i]->setDirY(-1.0 * ball[i]->getDirY());
-						}
-						else if (ball[i]->getDirX() < 0 && ball[i]->getDirY() < 0)
-						{
-							ball[i]->setXPos(rBrick + (ball[i]->getXMiddle() - rBrick) - ball[i]->getWidth() / 2.0 + 2.0);
-							ball[i]->setDirX(-1.0 * ball[i]->getDirX());
-						}
-						else
-						{
-							ball[i]->setYPos(uBrick - (uBrick - ball[i]->getYMiddle()) - ball[i]->getHeight() / 2.0 - 2.0);
-							ball[i]->setDirY(-1.0 * ball[i]->getDirY());
-						}
+					else if (ball[i]->getDirX() < 0 && ball[i]->getDirY() < 0)
+					{
+						ball[i]->setX(rBrick + (ball[i]->getXMiddle() - rBrick) - rad + 2.0);
+						ball[i]->setDirX(-1.0 * ball[i]->getDirX());
+					}
+					else
+					{
+						ball[i]->setY(uBrick - (uBrick - ball[i]->getYMiddle()) - rad - 2.0);
+						ball[i]->setDirY(-1.0 * ball[i]->getDirY());
+					}
+				}
+				else if (ball[i]->getXMiddle() < lBrick && ball[i]->getYMiddle() > dBrick && lBrick - ball[i]->getXMiddle() <= sqrt(pow(rad, 2) - pow(ball[i]->getYMiddle() - dBrick, 2)))
+				{
+					board->DestroyBrick(t, k);
+				//	std::cout << "ld" << std::endl;
+					paddle->setState(NOT_ANGLE);
+					if (ball[i]->getDirX() > 0 && ball[i]->getDirY() < 0)
+					{
+						ball[i]->setX(lBrick - (lBrick - ball[i]->getXMiddle()) - rad - 2.0);
+						ball[i]->setY(dBrick + (ball[i]->getYMiddle() - dBrick) - rad + 2.0);
+						ball[i]->setDirX(-1.0 * ball[i]->getDirX());
+						ball[i]->setDirY(-1.0 * ball[i]->getDirY());
+					}
+					else if (ball[i]->getDirX() > 0 && ball[i]->getDirY() > 0)
+					{
+						ball[i]->setX(lBrick - (lBrick - ball[i]->getXMiddle()) - rad - 2.0);
+						ball[i]->setDirX(-1.0 * ball[i]->getDirX());
+					}
+					else
+					{
+						ball[i]->setY(dBrick + (ball[i]->getYMiddle() - dBrick) - rad + 2.0);
+						ball[i]->setDirY(-1.0 * ball[i]->getDirY());
+					}
+				}
+				if (ball[i]->getXMiddle() > rBrick && ball[i]->getYMiddle() > dBrick && ball[i]->getXMiddle() - rBrick <= sqrt(pow(rad, 2) - pow(ball[i]->getYMiddle() - dBrick, 2)))
+				{
+					board->DestroyBrick(t, k);
+				//	std::cout << "rd" << std::endl;
+					paddle->setState(NOT_ANGLE);
+					if (ball[i]->getDirX() < 0 && ball[i]->getDirY() < 0)
+					{
+						ball[i]->setX(rBrick + (ball[i]->getXMiddle() - rBrick) - rad + 2.0);
+						ball[i]->setY(dBrick + (ball[i]->getYMiddle() - dBrick) - rad + 2.0);
+						ball[i]->setDirX(-1.0 * ball[i]->getDirX());
+						ball[i]->setDirY(-1.0 * ball[i]->getDirY());
+					}
+					else if (ball[i]->getDirX() < 0 && ball[i]->getDirY() > 0)
+					{
+						ball[i]->setX(rBrick + (ball[i]->getXMiddle() - rBrick) - rad + 2.0);
+						ball[i]->setDirX(-1.0 * ball[i]->getDirX());
+					}
+					else
+					{
+						ball[i]->setY(dBrick + (ball[i]->getYMiddle() - dBrick) - rad + 2.0);
+						ball[i]->setDirY(-1.0 * ball[i]->getDirY());
 					}
 				}
 			}

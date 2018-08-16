@@ -1,9 +1,9 @@
 #include "MainMenu.h"
 
 MainMenu::MainMenu(SDL_Renderer * renderer) {
-	mm.push_back(new Button(renderer, "New game", 50, 50));
-	mm.push_back(new Button(renderer, "High score", 50, 150));
-	mm.push_back(new Button(renderer, "Exit", 50, 250));
+	mm.push_back(new Button(renderer, "New game", DISPLAY_WIDTH / 2.0 - BUTTON_WIDTH / 2.0, DISPLAY_HEIGHT / 4.0 - BUTTON_HEIGHT / 2.0));
+	mm.push_back(new Button(renderer, "High score", DISPLAY_WIDTH / 2.0 - BUTTON_WIDTH / 2.0, DISPLAY_HEIGHT / 2.0 - BUTTON_HEIGHT / 2.0));
+	mm.push_back(new Button(renderer, "Exit", DISPLAY_WIDTH / 2.0 - BUTTON_WIDTH / 2.0, DISPLAY_HEIGHT / 4.0 * 3 - BUTTON_HEIGHT / 2.0));
 //	std::cout << "mainMenu constructor" << this << std::endl;
 }
 
@@ -26,6 +26,6 @@ size_t MainMenu::Size(){
 	return mm.size();
 }
 
-Button* MainMenu::getButton(size_t i) {
+Button * MainMenu::getButton(size_t i) {
 	return mm[i];
 }

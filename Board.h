@@ -9,6 +9,7 @@ public:
 	void CreateLvl();
 	void Clean();
 	Brick *getBrick(int i, int j);
+	void DestroyBrick(int i, int j);
 
 private:
 	SDL_Renderer * renderer;

@@ -28,6 +28,7 @@ void Paddle::Render() {
 
 void Paddle::Update() {
 	getSomeCoord(width, height);
+	Move();
 }
 
 void Paddle::Move() {
@@ -36,12 +37,20 @@ void Paddle::Move() {
 	{
 		if (x <= 0)
 			x = 0;
-		else x -= 5;
+		else x -= PADDLE_SPEED;
 	}
 	else if (keyboardState[SDL_SCANCODE_RIGHT])
 	{
 		if (xEnd >= DISPLAY_WIDTH)
 			x = DISPLAY_WIDTH - width;
-		else x += 5;
+		else x += PADDLE_SPEED;
 	}
+}
+
+void Paddle::setState(paddleState state) {
+	this->state = state;
+}
+	
+paddleState Paddle::getState() {
+	return state;
 }

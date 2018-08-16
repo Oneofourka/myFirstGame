@@ -7,14 +7,13 @@ Ball::Ball(SDL_Renderer * renderer, double x, double y) : Texture(renderer, x, y
 
 	width = BALL_WIDTH;
 	height = BALL_HEIGHT;
-	dirX = 1;
-	dirY = -1;
-//	std::cout << "ball constructor" << this << std::endl;
+	setDirection(1, -1);
+		std::cout << "ball constructor" << this << std::endl;
 }
 
 Ball::~Ball() {
 	SDL_DestroyTexture(ballTexture);
-//	std::cout << "ball destructor" << this << std::endl;
+	std::cout << "ball destructor" << this << std::endl;
 }
 
 void Ball::Render() {

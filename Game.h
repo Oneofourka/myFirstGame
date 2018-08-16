@@ -1,6 +1,7 @@
 #pragma once
 #include "SDL.h"
 #include "MainMenu.h"
+#include "EscMenu.h"
 #include "Paddle.h"
 #include "Ball.h"
 #include "Board.h"
@@ -8,10 +9,13 @@
 const int FPS = 120;
 const double frameDelay = 1000.0 / FPS;
 
-enum state {
+enum menuState {
 	MAINMENU,
-	GAME,
-	PAUSE
+	IN_GAME,
+	HIGH_SCORE,
+	QUIT,
+	PAUSE,
+	ESC_MENU
 };
 
 class Game	{
@@ -33,8 +37,10 @@ private:
 	SDL_Window * window;
 	SDL_Renderer * renderer;
 	MainMenu * mm;
-	state state;
+	EscMenu * em;
+	menuState state;
 	Paddle * paddle;
 	std::vector<Ball*> ball;
 	Board * board;
+	Uint8 life;
 };

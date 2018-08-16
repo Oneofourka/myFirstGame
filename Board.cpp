@@ -13,7 +13,8 @@ Board::~Board() {
 void Board::Render() {
 	for (int i = 0; i < NUMBER_WIDTH; i++) {
 		for (int j = 0; j < NUMBER_HEIGHT; j++) {
-			bricks[i][j]->Render();
+			if (bricks[i][j]->getState() == true)
+				bricks[i][j]->Render();
 		}
 	}
 }
@@ -36,4 +37,8 @@ void Board::Clean() {
 
 Brick* Board::getBrick(int i, int j) {
 	return bricks[i][j];
+}
+
+void Board::DestroyBrick(int i, int j) {
+	bricks[i][j]->setState(false);
 }

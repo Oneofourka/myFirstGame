@@ -8,6 +8,7 @@ Brick::Brick(SDL_Renderer * renderer, double x, double y) : Texture(renderer, x,
 	this->width = BRICK_WIDTH;
 	this->height = BRICK_HEIGHT;
 	getSomeCoord(width, height);
+	state = true;
 //	std::cout << "brick constructor" << this << std::endl;
 }
 
