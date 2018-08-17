@@ -1,15 +1,15 @@
 #include "Game.h"
 
 Game::Game() {
+//	std::cout << "game constructor" << this << std::endl;
 	window = nullptr;
 	renderer = nullptr;
 	state = MAINMENU;
-//	std::cout << "game constructor" << this << std::endl;
 }
 
 Game::~Game() {
-	Clean();
 //	std::cout << "game destructor" << this << std::endl;
+	Clean();
 }
 
 bool Game::Init() {
@@ -53,6 +53,7 @@ void Game::Running() {
 	{
 		frameStart = SDL_GetTicks();
 		Render();
+		Update();
 		SDL_Event event;
 		if (SDL_PollEvent(&event))
 		{
@@ -65,14 +66,14 @@ void Game::Running() {
 				{
 					if (mm->getButton(i)->Event(&event))
 					{
-						if (i == 0)
+						if (i == 0)				//NEW GAME
 						{
 							NewGame();
 							state = PAUSE;
 						}
-						if (i == 1)
+						if (i == 1)				//HIGH SCORE
 							state = HIGH_SCORE;
-						if (i == 2)
+						if (i == 2)				//QUIT
 							state = QUIT;
 					}
 				}
@@ -82,7 +83,7 @@ void Game::Running() {
 				{
 					if (em->getButton(i)->Event(&event))
 					{
-						if (i == 0)
+						if (i == 0)			//RESTART
 						{
 							delete paddle;
 							for (size_t i = 0; i < ball.size(); i++)
@@ -91,16 +92,18 @@ void Game::Running() {
 							delete board;
 							NewGame();
 							state = PAUSE;
-						}
-						if (i == 1)
+						}	
+						if (i == 1)			//MAINMENU
 						{
+							delete paddle;
 							for (size_t i = 0; i < ball.size(); i++)
 								delete ball[i];
 							board->Clean();
-
+							delete board;
+							NewGame();
 							state = MAINMENU;
 						}
-						if (i == 2)
+						if (i == 2)			//QUIT
 							state = QUIT;
 					}
 
@@ -126,8 +129,7 @@ void Game::Running() {
 				}
 			}
 		}
-		if (state == IN_GAME) 
-			Update();
+			
 		for (size_t i = 0; i < ball.size(); i++) {
 			RicochetBoundary(i);
 			RicochetPaddle(i);
@@ -147,7 +149,7 @@ void Game::Render() {
 	SDL_RenderClear(renderer);
 	if (state == MAINMENU)
 		mm->Render();
-	else if (state == IN_GAME || state == PAUSE)
+    if (state == IN_GAME || state == PAUSE)
 	{
 		paddle->Render();
 		for (size_t i = 0; i < ball.size(); i++) {
@@ -155,16 +157,17 @@ void Game::Render() {
 			board->Render();
 		}
 	}
-	else if (state == ESC_MENU)
+	if (state == ESC_MENU)
 		em->Render();
 	SDL_RenderPresent(renderer);
 }
 
 void Game::Update() {
-	for (size_t i = 0; i < ball.size(); i++) {
-		ball[i]->Update();
+	if (state == IN_GAME){
+		for (size_t i = 0; i < ball.size(); i++) 
+			ball[i]->Update();
+		paddle->Update();
 	}
-	paddle->Update();
 }
 
 void Game::Clean() {
@@ -183,8 +186,8 @@ void Game::Clean() {
 
 void Game::NewGame() {
 	paddle = new Paddle(renderer, DISPLAY_WIDTH / 2.0 - PADDLE_WIDTH / 2.0, DISPLAY_HEIGHT - PADDLE_HEIGHT);
-	board = new Board(renderer);
 	ball.push_back(new Ball(renderer, paddle->getXMiddle() - BALL_WIDTH / 2.0, paddle->getY() - BALL_HEIGHT));
+	board = new Board(renderer);
 	life = 3;
 }
 
@@ -213,8 +216,9 @@ void Game::RicochetBoundary(int i) {
 		ball[i]->setDirY(ball[i]->getDirY() * -1.0);
 		paddle->setState(NOT_ANGLE);
 	}
-	if (ball[i]->getYEnd() >= DISPLAY_HEIGHT) 
+	if (ball[i]->getYEnd() >= DISPLAY_HEIGHT)	//down
 	{
+		state = PAUSE;
 		life--;
 		ball[i]->setY(paddle->getY() - ball[i]->getHeight());
 		ball[i]->setX(paddle->getXMiddle() - ball[i]->getWidth() / 2.0);

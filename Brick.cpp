@@ -1,6 +1,7 @@
 #include "Brick.h"
 
 Brick::Brick(SDL_Renderer * renderer, double x, double y) : Texture(renderer, x, y) {
+//	std::cout << "brick constructor" << this << std::endl;
 	SDL_Surface* surface = IMG_Load("images/brick.png");
 	brickTexture = SDL_CreateTextureFromSurface(renderer, surface);
 	SDL_FreeSurface(surface);
@@ -9,12 +10,11 @@ Brick::Brick(SDL_Renderer * renderer, double x, double y) : Texture(renderer, x,
 	this->height = BRICK_HEIGHT;
 	getSomeCoord(width, height);
 	state = true;
-//	std::cout << "brick constructor" << this << std::endl;
 }
 
 Brick::~Brick() {
-	SDL_DestroyTexture(brickTexture);
 //	std::cout << "brick destructor" << this << std::endl;
+	SDL_DestroyTexture(brickTexture);
 }
 
 void Brick::Render() {

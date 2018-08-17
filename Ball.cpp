@@ -1,6 +1,7 @@
 #include "Ball.h"
 
 Ball::Ball(SDL_Renderer * renderer, double x, double y) : Texture(renderer, x, y) {
+	std::cout << "ball constructor" << this << std::endl;
 	SDL_Surface* surface = IMG_Load("images/ball.png");
 	ballTexture = SDL_CreateTextureFromSurface(renderer, surface);
 	SDL_FreeSurface(surface);
@@ -8,12 +9,11 @@ Ball::Ball(SDL_Renderer * renderer, double x, double y) : Texture(renderer, x, y
 	width = BALL_WIDTH;
 	height = BALL_HEIGHT;
 	setDirection(1, -1);
-		std::cout << "ball constructor" << this << std::endl;
 }
 
 Ball::~Ball() {
-	SDL_DestroyTexture(ballTexture);
 	std::cout << "ball destructor" << this << std::endl;
+	SDL_DestroyTexture(ballTexture);
 }
 
 void Ball::Render() {

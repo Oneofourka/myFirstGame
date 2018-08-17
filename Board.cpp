@@ -1,9 +1,9 @@
 #include "Board.h"
 
 Board::Board(SDL_Renderer * renderer) {
+//	std::cout << "board constructor" << this << std::endl;
 	this->renderer = renderer;
 	CreateLvl();
-//	std::cout << "board constructor" << this << std::endl;
 }
 
 Board::~Board() {

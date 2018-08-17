@@ -1,18 +1,18 @@
 #include "Paddle.h"
 
 Paddle::Paddle(SDL_Renderer * renderer, double x, double y) : Texture(renderer, x, y) {
+//	std::cout << "paddle constructor" << this << std::endl;
 	SDL_Surface* surface = IMG_Load("images/paddle.png");
 	paddleTexture = SDL_CreateTextureFromSurface(renderer, surface);
 	SDL_FreeSurface(surface);
 	
 	this->height = PADDLE_HEIGHT;
 	this->width = PADDLE_WIDTH;
-//	std::cout << "paddle constructor" << this << std::endl;
 }
 
 Paddle::~Paddle() {
-	SDL_DestroyTexture(paddleTexture);
 //	std::cout << "paddle destructor" << this << std::endl;
+	SDL_DestroyTexture(paddleTexture);
 }
 
 void Paddle::Render() {
