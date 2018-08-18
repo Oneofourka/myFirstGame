@@ -5,6 +5,8 @@
 #include "Paddle.h"
 #include "Ball.h"
 #include "Board.h"
+#include "Score_life.h"
+#include "HighScore.h"
 
 const int FPS = 120;
 const double frameDelay = 1000.0 / FPS;
@@ -22,7 +24,6 @@ class Game	{
 public:
 	Game();
 	~Game();
-
 	bool Init();
 	void Running();
 	void Render();
@@ -32,6 +33,7 @@ public:
 	void RicochetBoundary(int i);
 	void RicochetPaddle(int i);
 	void RicochetBrick(int i);
+	void CleanGameObject();
 
 private:
 	SDL_Window * window;
@@ -42,5 +44,9 @@ private:
 	Paddle * paddle;
 	std::vector<Ball*> ball;
 	Board * board;
-	Uint8 life;
+	int life;
+	int score;
+	Score_Life * scoreRender;
+	Score_Life * lifeRender;
+	HighScore * highscore;
 };
