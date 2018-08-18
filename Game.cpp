@@ -305,6 +305,8 @@ void Game::RicochetPaddle(int i) {
 }
 
 void Game::RicochetBrick(int i) {
+	if (board->getCheckExistBrick == NUMBER_HEIGHT * NUMBER_WIDTH)
+		board->CreateLvl()
 	for (int t = 0; t < NUMBER_WIDTH; t++)
 	{
 		for (int k = 0; k < NUMBER_HEIGHT; k++)

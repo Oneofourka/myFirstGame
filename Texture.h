@@ -7,6 +7,7 @@
 class Texture {
 public:
 	Texture(SDL_Renderer * renderer, double x, double y);
+	Texture() {};
 	virtual ~Texture();
 	void setX(double x);
 	void setY(double y);

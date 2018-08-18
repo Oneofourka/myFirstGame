@@ -6,12 +6,16 @@ public:
 	Board(SDL_Renderer * renderer);
 	~Board();
 	void Render();
-	void CreateLvl();
+	void CreateLvl(int forNextLvl);
 	void Clean();
 	Brick *getBrick(int i, int j);
 	void DestroyBrick(int i, int j);
+	int getCheckExistBrick();
 
 private:
 	SDL_Renderer * renderer;
-	Brick *bricks[NUMBER_WIDTH][NUMBER_HEIGHT];
+	int forNextLvl;
+	int countWidth, countHeight;
+	Brick **bricks = new Brick * [countWidth];
+	int checkExistBrick;
 };
