@@ -12,12 +12,12 @@ EscMenu::~EscMenu() {
 }
 
 void EscMenu::Render() {
-	for (size_t i = 0; i < em.size(); i++)
+	for (size_t i = 0; i < em.size(); ++i)
 		em[i]->Render();
 }
 
 void EscMenu::Clean() {
-	for (size_t i = 0; i < em.size(); i++) {
+	for (size_t i = 0; i < em.size(); ++i) {
 		delete em[i];
 	}
 }

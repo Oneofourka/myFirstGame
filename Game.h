@@ -29,7 +29,7 @@ public:
 	void Render();
 	void Update();
 	void Clean();
-	void NewGame();
+	void NewGame(int lvl);
 	void RicochetBoundary(int i);
 	void RicochetPaddle(int i);
 	void RicochetBrick(int i);
@@ -49,4 +49,5 @@ private:
 	Score_Life * scoreRender;
 	Score_Life * lifeRender;
 	HighScore * highscore;
+	int lvl;
 };

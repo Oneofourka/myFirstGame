@@ -1,7 +1,7 @@
 #include "HighScore.h"
 
 HighScore::HighScore(SDL_Renderer * renderer, double x, double y) : Texture(renderer, x, y) {
-	std::cout << "highscore constructor" << this << std::endl;
+//	std::cout << "highscore constructor" << this << std::endl;
 	this->width = HIGHSCORE_WIDTH;
 	this->height = HIGHSCORE_HEIGHT;
 	namefile = "highscore.txt";
@@ -23,7 +23,7 @@ HighScore::HighScore(SDL_Renderer * renderer, double x, double y) : Texture(rend
 }
 
 HighScore::~HighScore() {
-	std::cout << "highscore destructor" << this << std::endl;
+//	std::cout << "highscore destructor" << this << std::endl;
 }
 
 void HighScore::Render() {
@@ -31,7 +31,7 @@ void HighScore::Render() {
 	TTF_Font * font = TTF_OpenFont("ttf.ttf", 24);
 	SDL_Color color = { 255, 0, 0 };
 
-	for (size_t i = 0; i < highScore.size(); i++)
+	for (size_t i = 0; i < highScore.size(); ++i)
 	{
 		str = std::to_string(i + 1) + ") " + std::to_string(highScore[i]);
 		SDL_Surface * surface = TTF_RenderText_Solid(font, str.c_str(), color);
@@ -59,10 +59,10 @@ void HighScore::Push_back(int score) {
 		std::cout << "Error openning the file" << this << std::endl;
 	else
 	{
-		for (size_t i = 0; i < highScore.size(); i++)
+		for (size_t i = 0; i < highScore.size(); ++i)
 		{
 			str = std::to_string(highScore[i]);
-			for (size_t j = 0; j < str.size(); j++)
+			for (size_t j = 0; j < str.size(); ++j)
 				fs << str[j];
 			if (i != highScore.size() - 1)
 				fs << "\n";

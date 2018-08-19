@@ -7,13 +7,13 @@ Game::Game() {
 	state = MAINMENU;
 	score = 0;
 	life = 3;
+	lvl = 0;
 }
 
 Game::~Game() {
 //	std::cout << "game destructor" << this << std::endl;
 	if (state == PAUSE || state == IN_GAME)
 		CleanGameObject();
-	std::cout << state << std::endl;
 	Clean();
 }
 
@@ -64,6 +64,7 @@ void Game::Running() {
 			CleanGameObject();
 			life = 3;
 			highscore->Push_back(score);
+			lvl = 0;
 		}
 		SDL_Event event;
 		if (SDL_PollEvent(&event))
@@ -73,13 +74,14 @@ void Game::Running() {
 				break;
 			}
 			if (state == MAINMENU) {
-				for (size_t i = 0; i < mm->Size(); i++)
+				for (size_t i = 0; i < mm->Size(); ++i)
 				{
 					if (mm->getButton(i)->Event(&event))
 					{
 						if (i == 0)				//NEW GAME
 						{
-							NewGame();
+							lvl = 0;
+							NewGame(lvl);
 							state = PAUSE;
 						}
 						if (i == 1)				//HIGH SCORE
@@ -90,14 +92,15 @@ void Game::Running() {
 				}
 			}
 			if (state == ESC_MENU) {
-				for (size_t i = 0; i < mm->Size(); i++)
+				for (size_t i = 0; i < mm->Size(); ++i)
 				{
 					if (em->getButton(i)->Event(&event))
 					{
 						if (i == 0)			//RESTART
 						{
 							CleanGameObject();
-							NewGame();
+							lvl = 0;
+							NewGame(lvl);
 							state = PAUSE;
 							score = 0;
 						}	
@@ -142,7 +145,7 @@ void Game::Running() {
 			}
 		}
 			
-		for (size_t i = 0; i < ball.size(); i++) {
+		for (size_t i = 0; i < ball.size(); ++i) {
 			RicochetBoundary(i);
 			RicochetPaddle(i);
 			RicochetBrick(i);
@@ -166,7 +169,7 @@ void Game::Render() {
     if (state == IN_GAME || state == PAUSE)
 	{
 		paddle->Render();
-		for (size_t i = 0; i < ball.size(); i++) {
+		for (size_t i = 0; i < ball.size(); ++i) {
 			ball[i]->Render();
 		}
 		board->Render();
@@ -180,7 +183,7 @@ void Game::Render() {
 
 void Game::Update() {
 	if (state == IN_GAME){
-		for (size_t i = 0; i < ball.size(); i++) 
+		for (size_t i = 0; i < ball.size(); ++i) 
 			ball[i]->Update();
 		paddle->Update();
 		scoreRender->Update(score);
@@ -199,10 +202,10 @@ void Game::Clean() {
 	SDL_DestroyWindow(window);
 }
 
-void Game::NewGame() {
+void Game::NewGame(int lvl) {
 	paddle = new Paddle(renderer, DISPLAY_WIDTH / 2.0 - PADDLE_WIDTH / 2.0, DISPLAY_HEIGHT - PADDLE_HEIGHT);
-	ball.push_back(new Ball(renderer, paddle->getXMiddle() - BALL_WIDTH / 2.0, paddle->getY() - BALL_HEIGHT));
-	board = new Board(renderer);
+	ball.push_back(new Ball(renderer, paddle->getXMiddle() - BALL_WIDTH / 2.0, paddle->getY() - BALL_HEIGHT, lvl));
+	board = new Board(renderer, lvl);
 	life = 3;
 	scoreRender = new Score_Life(renderer, "score: ", 0, 0);
 	lifeRender = new Score_Life(renderer, "life: ", DISPLAY_WIDTH - 7 * SCORE_LIFE_WIDTH, 0);
@@ -235,13 +238,12 @@ void Game::RicochetBoundary(int i) {
 	}
 	if (ball[i]->getYEnd() >= DISPLAY_HEIGHT)	//down
 	{
-		life--; 
+		--life;
 		lifeRender->Update(life);
 		state = PAUSE;
 		ball[i]->setY(paddle->getY() - ball[i]->getHeight());
 		ball[i]->setX(paddle->getXMiddle() - ball[i]->getWidth() / 2.0);
 		ball[i]->setDirection(1, -1);
-		
 	}
 }
 
@@ -305,11 +307,22 @@ void Game::RicochetPaddle(int i) {
 }
 
 void Game::RicochetBrick(int i) {
-	if (board->getCheckExistBrick == NUMBER_HEIGHT * NUMBER_WIDTH)
-		board->CreateLvl()
-	for (int t = 0; t < NUMBER_WIDTH; t++)
+	if (board->getCheckExistBrick() == board->getCountHeight() * board->getCountWidth())
 	{
-		for (int k = 0; k < NUMBER_HEIGHT; k++)
+		state = PAUSE;
+		++lvl;
+		board->Clean();
+		delete board;
+		board = new Board(renderer, lvl);
+		paddle->setX(DISPLAY_WIDTH / 2.0 - PADDLE_WIDTH / 2.0);
+		for (size_t i = 0; i < ball.size(); ++i)
+			delete ball[i];
+		ball.clear();
+		ball.push_back(new Ball(renderer, paddle->getXMiddle() - BALL_WIDTH / 2.0, paddle->getY() - BALL_HEIGHT, lvl));
+	}
+	for (int t = 0; t < NUMBER_WIDTH + lvl; ++t)
+	{
+		for (int k = 0; k < NUMBER_HEIGHT + lvl; ++k)
 		{
 			double rad = ball[i]->getWidth() / 2.0;
 			double lBrick = board->getBrick(t, k)->getX(); //left wall of brick
@@ -457,7 +470,7 @@ void Game::RicochetBrick(int i) {
 
 void Game::CleanGameObject() {
 	delete paddle;
-	for (size_t i = 0; i < ball.size(); i++)
+	for (size_t i = 0; i < ball.size(); ++i)
 		delete ball[i];
 	ball.clear();
 	board->Clean();

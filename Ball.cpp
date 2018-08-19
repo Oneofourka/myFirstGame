@@ -1,11 +1,12 @@
 #include "Ball.h"
 
-Ball::Ball(SDL_Renderer * renderer, double x, double y) : Texture(renderer, x, y) {
+Ball::Ball(SDL_Renderer * renderer, double x, double y, double plusSpeed) : Texture(renderer, x, y) {
 //	std::cout << "ball constructor" << this << std::endl;
 	SDL_Surface* surface = IMG_Load("images/ball.png");
 	ballTexture = SDL_CreateTextureFromSurface(renderer, surface);
 	SDL_FreeSurface(surface);
 
+	this->plusSpeed = plusSpeed;
 	width = BALL_WIDTH;
 	height = BALL_HEIGHT;
 	setDirection(1, -1);
@@ -51,6 +52,6 @@ double Ball::getDirY() {
 
 void Ball::setDirection(double dirX, double dirY) {
 	double length = sqrt(dirX * dirX + dirY * dirY);
-	this->dirX = BALL_SPEED * (dirX / length);
-	this->dirY = BALL_SPEED * (dirY / length);
+	this->dirX = BALL_SPEED * (1.0 + 0.2 * plusSpeed) * (dirX / length);
+	this->dirY = BALL_SPEED * (1.0 + 0.2 * plusSpeed) * (dirY / length);
 }

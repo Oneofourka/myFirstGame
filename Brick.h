@@ -3,8 +3,8 @@
 
 class Brick : public Texture {
 public:
-	Brick() {};
-	Brick(SDL_Renderer * renderer, double x, double y);
+	Brick() {}
+	Brick(SDL_Renderer * renderer, double x, double y, double width, double height);
 	~Brick() override;
 	void Render();
 	void setState(bool state);

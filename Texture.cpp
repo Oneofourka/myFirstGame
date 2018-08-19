@@ -7,6 +7,19 @@ Texture::Texture(SDL_Renderer * renderer, double x, double y){
 	this->y = y;
 }
 
+Texture::Texture() {
+//	std::cout << "texture constructor" << this << std::endl;
+}
+
+Texture::Texture(SDL_Renderer * renderer, double x, double y, double width, double height) {
+//	std::cout << "texture constructor" << this << std::endl;
+	this->renderer = renderer;
+	this->x = x;
+	this->y = y;
+	this->width = width;
+	this->height = height;
+}
+
 Texture::~Texture() {
 //	std::cout << "texture destructor" << this << std::endl;
 }

@@ -12,12 +12,12 @@ MainMenu::~MainMenu() {
 }
 
 void MainMenu::Render() {
-	for (size_t i = 0; i < mm.size(); i++)
+	for (size_t i = 0; i < mm.size(); ++i)
 		mm[i]->Render();
 }
 
 void MainMenu::Clean() {
-	for (size_t i = 0; i < mm.size(); i++) {
+	for (size_t i = 0; i < mm.size(); ++i) {
 		delete mm[i];
 	}
 }
