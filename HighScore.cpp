@@ -1,7 +1,7 @@
 #include "HighScore.h"
 
 HighScore::HighScore(SDL_Renderer * renderer, double x, double y) : Texture(renderer, x, y) {
-//	std::cout << "highscore constructor" << this << std::endl;
+	//std::cout << "highscore constructor" << this << std::endl;
 	this->width = HIGHSCORE_WIDTH;
 	this->height = HIGHSCORE_HEIGHT;
 	namefile = "highscore.txt";
@@ -19,7 +19,7 @@ HighScore::HighScore(SDL_Renderer * renderer, double x, double y) : Texture(rend
 		}
 	}
 	fs.close();
-	back = new Button(renderer, "Back", DISPLAY_WIDTH - 2 * BUTTON_WIDTH, DISPLAY_HEIGHT - 2 * BUTTON_HEIGHT);
+	back = new Button(renderer, "Back", DISPLAY_WIDTH - 1.5 * BUTTON_WIDTH, DISPLAY_HEIGHT - 1.5 * BUTTON_HEIGHT);
 }
 
 HighScore::~HighScore() {

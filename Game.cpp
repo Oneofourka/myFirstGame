@@ -5,7 +5,6 @@ Game::Game() {
 	window = nullptr;
 	renderer = nullptr;
 	state = MAINMENU;
-	score = 0;
 	life = 3;
 	lvl = 0;
 }
@@ -50,7 +49,7 @@ bool Game::Init() {
 void Game::Running() {
 	mm = new MainMenu(renderer);
 	em = new EscMenu(renderer);
-	highscore = new HighScore(renderer, 100, 100);
+	highscore = new HighScore(renderer, 100, (DISPLAY_HEIGHT - 10 * HIGHSCORE_HEIGHT) / 2.0);
 	Uint32 frameStart;
 	int frameTime;
 	while (state != QUIT)	
@@ -100,9 +99,9 @@ void Game::Running() {
 						{
 							CleanGameObject();
 							lvl = 0;
+							score = 0;
 							NewGame(lvl);
 							state = PAUSE;
-							score = 0;
 						}	
 						if (i == 1)			//MAINMENU
 						{
@@ -186,8 +185,6 @@ void Game::Update() {
 		for (size_t i = 0; i < ball.size(); ++i) 
 			ball[i]->Update();
 		paddle->Update();
-		scoreRender->Update(score);
-		lifeRender->Update(life);
 	}
 }
 
@@ -207,8 +204,11 @@ void Game::NewGame(int lvl) {
 	ball.push_back(new Ball(renderer, paddle->getXMiddle() - BALL_WIDTH / 2.0, paddle->getY() - BALL_HEIGHT, lvl));
 	board = new Board(renderer, lvl);
 	life = 3;
+	score = 0;
 	scoreRender = new Score_Life(renderer, "score: ", 0, 0);
 	lifeRender = new Score_Life(renderer, "life: ", DISPLAY_WIDTH - 7 * SCORE_LIFE_WIDTH, 0);
+	scoreRender->Update(score);
+	lifeRender->Update(life);
 }
 
 void Game::RicochetBoundary(int i) {
@@ -338,6 +338,7 @@ void Game::RicochetBrick(int i) {
 					ball[i]->setDirY(-1.0 * ball[i]->getDirY());
 					board->DestroyBrick(t, k);
 					score += SCORE_PLUS;
+					scoreRender->Update(score);
 					paddle->setState(NOT_ANGLE);
 				}
 				else if (ball[i]->getXMiddle() >= lBrick && ball[i]->getXMiddle() <= rBrick && ball[i]->getYMiddle() < uBrick && ball[i]->getYEnd() >= uBrick)
@@ -347,6 +348,7 @@ void Game::RicochetBrick(int i) {
 					ball[i]->setDirY(-1.0 * ball[i]->getDirY());
 					board->DestroyBrick(t, k);
 					score += SCORE_PLUS;
+					scoreRender->Update(score);
 					paddle->setState(NOT_ANGLE);
 				}
 				else if (ball[i]->getYMiddle() >= uBrick && ball[i]->getYMiddle() <= dBrick && ball[i]->getXMiddle() < lBrick && ball[i]->getXEnd() >= lBrick)
@@ -356,6 +358,7 @@ void Game::RicochetBrick(int i) {
 					ball[i]->setDirX(-1.0 * ball[i]->getDirX());
 					board->DestroyBrick(t, k);
 					score += SCORE_PLUS;
+					scoreRender->Update(score);
 					paddle->setState(NOT_ANGLE);
 				}
 				else if (ball[i]->getYMiddle() >= uBrick && ball[i]->getYMiddle() <= dBrick && ball[i]->getXMiddle() > rBrick && ball[i]->getX() <= rBrick)
@@ -365,12 +368,14 @@ void Game::RicochetBrick(int i) {
 					ball[i]->setDirX(-1.0 * ball[i]->getDirX());
 					board->DestroyBrick(t, k);
 					score += SCORE_PLUS;
+					scoreRender->Update(score);
 					paddle->setState(NOT_ANGLE);
 				}
 				else if (ball[i]->getXMiddle() < lBrick && ball[i]->getYMiddle() < uBrick && lBrick - ball[i]->getXMiddle() <= sqrt(pow(rad, 2) - pow(uBrick - ball[i]->getYMiddle(), 2)))
 				{
 					board->DestroyBrick(t, k);
 					score += SCORE_PLUS;
+					scoreRender->Update(score);
 					//	std::cout << "lu" << std::endl;
 					paddle->setState(NOT_ANGLE);
 					if (ball[i]->getDirX() >= 0 && ball[i]->getDirY() >= 0)
@@ -395,6 +400,7 @@ void Game::RicochetBrick(int i) {
 				{
 					board->DestroyBrick(t, k);
 					score += SCORE_PLUS;
+					scoreRender->Update(score);
 					//	std::cout << "ru" << std::endl;
 					paddle->setState(NOT_ANGLE);
 					if (ball[i]->getDirX() < 0 && ball[i]->getDirY() > 0)
@@ -419,6 +425,7 @@ void Game::RicochetBrick(int i) {
 				{
 					board->DestroyBrick(t, k);
 					score += SCORE_PLUS;
+					scoreRender->Update(score);
 					//	std::cout << "ld" << std::endl;
 					paddle->setState(NOT_ANGLE);
 					if (ball[i]->getDirX() > 0 && ball[i]->getDirY() < 0)
@@ -443,6 +450,7 @@ void Game::RicochetBrick(int i) {
 				{
 					board->DestroyBrick(t, k);
 					score += SCORE_PLUS;
+					scoreRender->Update(score);
 					//	std::cout << "rd" << std::endl;
 					paddle->setState(NOT_ANGLE);
 					if (ball[i]->getDirX() < 0 && ball[i]->getDirY() < 0)

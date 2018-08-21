@@ -6,9 +6,9 @@ Score_Life::Score_Life(SDL_Renderer * renderer, std::string text, double x, doub
 	this->width = SCORE_LIFE_WIDTH;
 	this->height = SCORE_LIFE_HEIGHT;
 	s = text;
-	TTF_Font * font = TTF_OpenFont("ttf.ttf", 24);
-	SDL_Color color = { 255, 0, 0 };
-	SDL_Surface * surface = TTF_RenderText_Solid(font, text.c_str(), color);
+	font = TTF_OpenFont("ttf.ttf", 24);
+	color = { 255, 0, 0 };
+	surface = TTF_RenderText_Solid(font, text.c_str(), color);
 	message = SDL_CreateTextureFromSurface(renderer, surface);
 	SDL_FreeSurface(surface);
 }
@@ -29,11 +29,11 @@ void Score_Life::Render() {
 }
 
 void Score_Life::Update(int number) {
-	TTF_Font * font = TTF_OpenFont("ttf.ttf", 24);
-	SDL_Color color = { 255, 0, 0 };
+	font = TTF_OpenFont("ttf.ttf", 24);
+	color = { 255, 0, 0 };
 	this->number = number;
 	s = text + std::to_string(number);
-	SDL_Surface * surface = TTF_RenderText_Solid(font, s.c_str(), color);
+	surface = TTF_RenderText_Solid(font, s.c_str(), color);
 	message = SDL_CreateTextureFromSurface(renderer, surface);
 	SDL_FreeSurface(surface);
 }

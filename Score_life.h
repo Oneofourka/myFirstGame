@@ -14,4 +14,7 @@ private:
 	SDL_Texture * message; 
 	int number;
 	std::string text, s;
+	TTF_Font * font;
+	SDL_Color color;
+	SDL_Surface * surface;
 };

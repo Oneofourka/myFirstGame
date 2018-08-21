@@ -8,7 +8,7 @@ EscMenu::EscMenu(SDL_Renderer * renderer) {
 }
 
 EscMenu::~EscMenu() {
-	//	std::cout << "mainMenu destructor" << this << std::endl;
+//	std::cout << "mainMenu destructor" << this << std::endl;
 }
 
 void EscMenu::Render() {
